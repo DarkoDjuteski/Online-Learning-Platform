@@ -1,0 +1,100 @@
+﻿@page "/"
+@using OnlineLearningPlatform.Frontend.Services
+@attribute [StreamRendering(true)]
+
+@inject CourseServiceClient CourseService
+
+<PageTitle>Online Learning Platform Courses Catalog</PageTitle>
+
+<header class="d-flex align-items-center justify-content-center">
+    <h1 class="app-name pa-4">&lt;Online Learning Platform /&gt;</h1>
+    <h2 class="text-align-center">Courses Catalog</h2>
+    <div class="flex-spacer"></div>
+    <Cart BasketAvailabilityChanged="HandleBasketAvailabilityChanged" />
+    <div class="justify-content-end">
+    <button type="submit" class="align-content-end cart-button">
+        <span class="fa-stack fa-lg cart-stack pa-1">
+            <i class="fa fa-user fa-1x"></i>
+        </span>
+    </button>
+    </div>
+</header>
+
+<div class="container">
+    @if (courses.Any())
+    {
+        <div class="grid">
+                @foreach (var item in courses)
+            {
+                <div class="grid-item" data-id="@item.CourseId">
+                    <div class="grid-item-content">
+                        <img src=@("/images/" + @item.CourseId +".jpeg") alt="@item.Title" class="catalog-item-image" />
+                        <div class="quick-view-overlay">
+                            <i class="fa fa-search-plus" aria-hidden="true"></i>
+                        </div>
+                        <div class="grid-item-text">
+                            <h4 class="pointer-events-none">@item.Title</h4>
+                            <p class="item-description pointer-events-none">@item.Description</p>
+                            <div class="d-flex justify-space-evenly align-items-center">
+                                <p class="item-price pointer-events-none">@item.Price.ToString() $</p>
+                                @if (basketIsAvailable)
+                                {
+                                    <AddToCart Item="item" />
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="pager">
+            <a class="previous button" disable=@(paginationInfo.HasPreviousPage is false) href="?before=@paginationInfo.FirstId">
+                <i class="fa fa-arrow-left" aria-hidden="true"></i>
+                Previous
+            </a>
+
+            <a class="next button" disable=@(paginationInfo.HasNextPage is false) href="?after=@paginationInfo.NextId">
+                Next
+                <i class="fa fa-arrow-right" aria-hidden="true"></i>
+            </a>
+        </div>
+    }
+    else
+    {
+        <p class="catalog-loading">Loading product catalog…</p>
+    }
+</div>
+
+<AppFooter />
+
+@code {
+    bool basketIsAvailable;
+    Course[] courses;
+    PaginationInfo paginationInfo = new(FirstId: 0, NextId: 0, HasPreviousPage: false, HasNextPage: false);
+
+    [SupplyParameterFromQuery]
+    public int? Before { get; set; }
+
+    [SupplyParameterFromQuery]
+    public int? After { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        courses = CourseService.GetItemsAsync(Before, After).Result;
+
+        if (courses is null)
+        {
+            return;
+        }
+
+        // paginationInfo = new PaginationInfo(1, course.NextId, course.FirstId > 1, !course.IsLastPage);
+    }
+
+    private void HandleBasketAvailabilityChanged(bool isAvailable)
+    {
+        basketIsAvailable = isAvailable;
+    }
+
+    record PaginationInfo(int FirstId, int NextId, bool HasPreviousPage, bool HasNextPage);
+}

@@ -1,0 +1,6 @@
+@OnlineLearningPlatform.PaymentApiService_HostAddress = http://localhost:5161
+
+GET {{OnlineLearningPlatform.PaymentApiService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

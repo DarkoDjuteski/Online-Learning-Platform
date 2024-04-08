@@ -1,0 +1,27 @@
+﻿@using OnlineLearningPlatform.Frontend.Services
+@inject BasketServiceClient BasketClient
+@inject NavigationManager Navigation
+
+<EditForm Model="this" FormName="@($"addtocart-{Item.CourseId}")" OnSubmit="HandleAddToCart" data-enhance>
+    <input type="hidden" name="itemid" value="@Item.CourseId" />
+    <button type="submit" class="align-content-end cart-button" title=@($"Add {@Item.Title} to cart?")>
+        <i class="fa fa-cart-plus" aria-hidden="true"></i>
+    </button>
+</EditForm>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public required Course Item { get; set; }
+
+    [SupplyParameterFromForm]
+    public int ItemId { get; set; }
+
+    private async Task HandleAddToCart()
+    {
+       await BasketClient.AddToCartAsync("user", ItemId);
+
+        // Preserve query string
+        Navigation.NavigateTo($"/{new Uri(Navigation.Uri).Query}");
+    }
+}
